@@ -39,7 +39,7 @@ from rocket_functions import generate_kernels, apply_kernels
 # *dataset_names* should be a txt file of dataset names, each on a new line.
 #
 # If *input_path* is, e.g., ".../Univariate_arff/", then each dataset should be
-# located at "{input_path}/{dataset_name}/{dataset_name}_TRAIN.txt", etc.
+# located at "{input_path}/{dataset_name}/{dataset_name}_TRAIN.tsv", etc.
 
 # == parse arguments ===========================================================
 
@@ -56,13 +56,15 @@ arguments = parser.parse_args()
 # == run =======================================================================
 
 dataset_names = np.loadtxt(arguments.dataset_names, "str")
-
+# print(dataset_names)
+# assert 0
 results = pd.DataFrame(index = dataset_names,
                        columns = ["accuracy_mean",
                                   "accuracy_standard_deviation",
                                   "time_training_seconds",
                                   "time_test_seconds"],
                        data = 0)
+assert 0
 results.index.name = "dataset"
 
 print(f"RUNNING".center(80, "="))
@@ -75,10 +77,10 @@ for dataset_name in dataset_names:
 
     print(f"Loading data".ljust(80 - 5, "."), end = "", flush = True)
 
-    training_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TRAIN.txt")
+    training_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TRAIN.tsv")
     Y_training, X_training = training_data[:, 0].astype(np.int32), training_data[:, 1:]
 
-    test_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TEST.txt")
+    test_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TEST.tsv")
     Y_test, X_test = test_data[:, 0].astype(np.int32), test_data[:, 1:]
 
     print("Done.")

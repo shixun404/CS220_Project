@@ -24,7 +24,7 @@ from rocket_functions import generate_kernels, apply_kernels
 # - Optional arguments allow you to set the number of runs, -n or --num_runs,
 #   and the number of kernels, -k or --num_kernels.
 # - If input_path is ".../Univariate_arff/", then each dataset should be
-#   located at "{input_path}/{dataset_name}/{dataset_name}_TRAIN.txt", etc.
+#   located at "{input_path}/{dataset_name}/{dataset_name}_TRAIN.tsv", etc.
 # - Most of the code herein relates to handling input/output, multiple runs,
 #   timings, etc.  The key code to use ROCKET is simply:
 #       kernels = generate_kernels(X_training.shape[1], 10_000)
@@ -58,81 +58,81 @@ dataset_names_bakeoff = \
     "ChlorineConcentration",
     "CinCECGTorso",
     "Coffee",
-    "Computers",
-    "CricketX",
-    "CricketY",
-    "CricketZ",
-    "DiatomSizeReduction",
-    "DistalPhalanxOutlineCorrect",
-    "DistalPhalanxOutlineAgeGroup",
-    "DistalPhalanxTW",
-    "Earthquakes",
-    "ECG200",
-    "ECG5000",
-    "ECGFiveDays",
-    "ElectricDevices",
-    "FaceAll",
-    "FaceFour",
-    "FacesUCR",
-    "FiftyWords",
-    "Fish",
-    "FordA",
-    "FordB",
-    "GunPoint",
-    "Ham",
-    "HandOutlines",
-    "Haptics",
-    "Herring",
-    "InlineSkate",
-    "InsectWingbeatSound",
-    "ItalyPowerDemand",
-    "LargeKitchenAppliances",
-    "Lightning2",
-    "Lightning7",
-    "Mallat",
-    "Meat",
-    "MedicalImages",
-    "MiddlePhalanxOutlineCorrect",
-    "MiddlePhalanxOutlineAgeGroup",
-    "MiddlePhalanxTW",
-    "MoteStrain",
-    "NonInvasiveFetalECGThorax1",
-    "NonInvasiveFetalECGThorax2",
-    "OliveOil",
-    "OSULeaf",
-    "PhalangesOutlinesCorrect",
-    "Phoneme",
-    "Plane",
-    "ProximalPhalanxOutlineCorrect",
-    "ProximalPhalanxOutlineAgeGroup",
-    "ProximalPhalanxTW",
-    "RefrigerationDevices",
-    "ScreenType",
-    "ShapeletSim",
-    "ShapesAll",
-    "SmallKitchenAppliances",
-    "SonyAIBORobotSurface1",
-    "SonyAIBORobotSurface2",
-    "StarLightCurves",
-    "Strawberry",
-    "SwedishLeaf",
-    "Symbols",
-    "SyntheticControl",
-    "ToeSegmentation1",
-    "ToeSegmentation2",
-    "Trace",
-    "TwoLeadECG",
-    "TwoPatterns",
-    "UWaveGestureLibraryX",
-    "UWaveGestureLibraryY",
-    "UWaveGestureLibraryZ",
-    "UWaveGestureLibraryAll",
-    "Wafer",
-    "Wine",
-    "WordSynonyms",
-    "Worms",
-    "WormsTwoClass",
-    "Yoga"
+    # "Computers",
+    # "CricketX",
+    # "CricketY",
+    # "CricketZ",
+    # "DiatomSizeReduction",
+    # "DistalPhalanxOutlineCorrect",
+    # "DistalPhalanxOutlineAgeGroup",
+    # "DistalPhalanxTW",
+    # "Earthquakes",
+    # "ECG200",
+    # "ECG5000",
+    # "ECGFiveDays",
+    # "ElectricDevices",
+    # "FaceAll",
+    # "FaceFour",
+    # "FacesUCR",
+    # "FiftyWords",
+    # "Fish",
+    # "FordA",
+    # "FordB",
+    # "GunPoint",
+    # "Ham",
+    # "HandOutlines",
+    # "Haptics",
+    # "Herring",
+    # "InlineSkate",
+    # "InsectWingbeatSound",
+    # "ItalyPowerDemand",
+    # "LargeKitchenAppliances",
+    # "Lightning2",
+    # "Lightning7",
+    # "Mallat",
+    # "Meat",
+    # "MedicalImages",
+    # "MiddlePhalanxOutlineCorrect",
+    # "MiddlePhalanxOutlineAgeGroup",
+    # "MiddlePhalanxTW",
+    # "MoteStrain",
+    # "NonInvasiveFetalECGThorax1",
+    # "NonInvasiveFetalECGThorax2",
+    # "OliveOil",
+    # "OSULeaf",
+    # "PhalangesOutlinesCorrect",
+    # "Phoneme",
+    # "Plane",
+    # "ProximalPhalanxOutlineCorrect",
+    # "ProximalPhalanxOutlineAgeGroup",
+    # "ProximalPhalanxTW",
+    # "RefrigerationDevices",
+    # "ScreenType",
+    # "ShapeletSim",
+    # "ShapesAll",
+    # "SmallKitchenAppliances",
+    # "SonyAIBORobotSurface1",
+    # "SonyAIBORobotSurface2",
+    # "StarLightCurves",
+    # "Strawberry",
+    # "SwedishLeaf",
+    # "Symbols",
+    # "SyntheticControl",
+    # "ToeSegmentation1",
+    # "ToeSegmentation2",
+    # "Trace",
+    # "TwoLeadECG",
+    # "TwoPatterns",
+    # "UWaveGestureLibraryX",
+    # "UWaveGestureLibraryY",
+    # "UWaveGestureLibraryZ",
+    # "UWaveGestureLibraryAll",
+    # "Wafer",
+    # "Wine",
+    # "WordSynonyms",
+    # "Worms",
+    # "WormsTwoClass",
+    # "Yoga"
 )
 
 # == bake off convenience function =============================================
@@ -142,8 +142,8 @@ def run(training_data, test_data, num_runs = 10, num_kernels = 10_000):
     results = np.zeros(num_runs)
     timings = np.zeros([4, num_runs]) # training transform, test transform, training, test
 
-    Y_training, X_training = training_data[:, 0].astype(np.int), training_data[:, 1:]
-    Y_test, X_test = test_data[:, 0].astype(np.int), test_data[:, 1:]
+    Y_training, X_training = training_data[:, 0].astype(np.int32), training_data[:, 1:]
+    Y_test, X_test = test_data[:, 0].astype(np.int32), test_data[:, 1:]
 
     for i in range(num_runs):
 
@@ -168,6 +168,7 @@ def run(training_data, test_data, num_runs = 10, num_kernels = 10_000):
 
         time_a = time.perf_counter()
         classifier = RidgeClassifierCV(alphas = 10 ** np.linspace(-3, 3, 10), normalize = True)
+        # classifier = RidgeClassifierCV(alphas = 10 ** np.linspace(-3, 3, 10))
         classifier.fit(X_training_transform, Y_training)
         time_b = time.perf_counter()
         timings[2, i] = time_b - time_a
@@ -203,8 +204,8 @@ for dataset_name in dataset_names_bakeoff:
 
     print(f"Loading data".ljust(80 - 5, "."), end = "", flush = True)
 
-    training_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TRAIN.txt")
-    test_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TEST.txt")
+    training_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TRAIN.tsv")
+    test_data = np.loadtxt(f"{arguments.input_path}/{dataset_name}/{dataset_name}_TEST.tsv")
 
     print("Done.")
 
