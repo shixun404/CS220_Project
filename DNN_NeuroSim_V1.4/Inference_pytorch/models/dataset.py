@@ -118,6 +118,4 @@ def get_ucr(ucr_args, test_path=None):
                         chunksize = ucr_args["chunk_size"],
                         nrows = ucr_args["test_size"],
                         engine = "c")
-
-    
     return None, test_file

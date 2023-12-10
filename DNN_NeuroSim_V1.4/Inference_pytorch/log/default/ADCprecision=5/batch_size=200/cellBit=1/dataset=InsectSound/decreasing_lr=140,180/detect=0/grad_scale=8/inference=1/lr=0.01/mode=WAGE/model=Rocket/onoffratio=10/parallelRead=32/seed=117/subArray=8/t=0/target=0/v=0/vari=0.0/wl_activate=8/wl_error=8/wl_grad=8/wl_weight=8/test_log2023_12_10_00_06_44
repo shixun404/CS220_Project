@@ -1,0 +1,30 @@
+=================FLAGS==================
+dataset: InsectSound
+model: Rocket
+mode: WAGE
+batch_size: 200
+epochs: 200
+grad_scale: 8
+seed: 117
+log_interval: 100
+test_interval: 1
+logdir: /global/u1/s/swu264/DNN_NeuroSim_V1.4/Inference_pytorch/log/default/ADCprecision=5/batch_size=200/cellBit=1/dataset=InsectSound/decreasing_lr=140,180/detect=0/grad_scale=8/inference=1/lr=0.01/mode=WAGE/model=Rocket/onoffratio=10/parallelRead=32/seed=117/subArray=8/t=0/target=0/v=0/vari=0.0/wl_activate=8/wl_error=8/wl_grad=8/wl_weight=8
+lr: 0.01
+decreasing_lr: 140,180
+wl_weight: 8
+wl_grad: 8
+wl_activate: 8
+wl_error: 8
+inference: 1
+subArray: 8
+parallelRead: 32
+ADCprecision: 5
+cellBit: 1
+onoffratio: 10
+vari: 0.0
+t: 0
+v: 0
+detect: 0
+target: 0
+========================================
+Test set: Average loss: 2.5901, Accuracy: 17974/25000 (72%)

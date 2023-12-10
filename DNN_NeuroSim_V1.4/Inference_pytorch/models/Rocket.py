@@ -1,14 +1,15 @@
 from utee import misc
-# print = misc.logger.info
+print = misc.logger.info
 import torch.nn as nn
 from modules.quantization_cpu_np_infer import QConv2d,  QLinear
 from modules.floatrange_cpu_np_infer import FConv2d, FLinear
 import torch
 import math
+import pickle as pkl
 name=0
 
 class Rocket(nn.Module):
-    def __init__(self, args, logger, depth, growth_rate=12, reduction=0.5, num_classes=10, num_features=84 * (10_000 // 84)):
+    def __init__(self, args, logger, depth, growth_rate=12, reduction=0.5, num_classes=10, num_features=8192):
         super(Rocket, self).__init__()
         nBlocks = (depth-4) // 3 // 2
         
@@ -131,12 +132,12 @@ def make_layers(cfg, args, logger):
     
     
 def RocketNet(args, logger, pretrained=None, parameters=None):
-    model = Rocket(args, logger, depth=40, growth_rate=12, reduction=0.5, num_classes=10, num_features=84 * (10_000 // 84))
-    for param_tensor in model.state_dict():
-        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-    assert 0
+    model = Rocket(args, logger, depth=40, growth_rate=12, reduction=0.5, num_classes=10, num_features=8192)
+    # for param_tensor in model.state_dict():
+    #     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+    # assert 0
     if pretrained is not None:
-        model.load_state_dict(torch.load(pretrained)).to('cuda:0')
+        model.load_state_dict(torch.load(pretrained, map_location='cuda'))
     if parameters is not None:
         with open(parameters, 'rb') as f:
             parameters, f_mean, f_std = pkl.load(f)

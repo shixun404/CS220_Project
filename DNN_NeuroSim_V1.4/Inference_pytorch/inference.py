@@ -12,6 +12,7 @@ from utee import wage_util
 import pandas as pd
 from models import dataset
 import torchvision.models as models
+from minirocket import fit, transform
 from utee import hook
 #from IPython import embed
 from datetime import datetime
@@ -156,13 +157,11 @@ if args.model != 'Rocket':
             correct += pred.cpu().eq(indx_target).sum()
         if i==0:
             hook.remove_hook_list(hook_handle_list)
+    test_loss = test_loss / len(test_loader)  # average over number of mini-batch
+    acc = 100. * correct / len(test_loader.dataset)
+
 else:
-    file = pd.read_csv(path,
-                       header = None,
-                       sep = ",",
-                       chunksize = args["chunk_size"],
-                       nrows = args["test_size"],
-                       engine = "c")
+    rocket_test_file_nrows = 0
     for chunk_index, chunk in enumerate(test_loader):
 
         print(f"Chunk = {chunk_index + 1}...".ljust(80, " "), end = "\r")
@@ -172,7 +171,10 @@ else:
         target, data = test_data[:, -1], test_data[:, :-1].astype(np.float32)
         data = transform(data, modelCF.conv_parameters)
         data = (data - modelCF.f_mean) / modelCF.f_std
-        data = torch.FloatTensor(data)
+        data = torch.FloatTensor(data)[:, :8192]
+        target = torch.LongTensor(target)
+        
+        rocket_test_file_nrows += target.shape[0]
 
         if chunk_index == 0:
             hook_handle_list = hook.hardware_evaluation(modelCF,args.wl_weight,args.wl_activate,args.subArray,args.parallelRead,args.model,args.mode)
@@ -188,9 +190,10 @@ else:
             correct += pred.cpu().eq(indx_target).sum()
         if chunk_index == 0:
             hook.remove_hook_list(hook_handle_list)
+    test_loss = test_loss / chunk_index  # average over number of mini-batch
+    acc = 100. * correct / rocket_test_file_nrows
 
-test_loss = test_loss / len(test_loader)  # average over number of mini-batch
-acc = 100. * correct / len(test_loader.dataset)
+
 
 accuracy = acc.cpu().data.numpy()
 
@@ -209,7 +212,14 @@ if args.inference:
     print("variation: ")
     print(args.vari)
 
-logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-	test_loss, correct, len(test_loader.dataset), acc))
+if args.model != 'Rocket':
+    logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+        test_loss, correct, len(test_loader.dataset), acc))
+else:
+    logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+        test_loss, correct, rocket_test_file_nrows, acc))
+    print(rocket_test_file_nrows)
+
+
 
 call(["/bin/bash", './layer_record_'+str(args.model)+'/trace_command.sh'])

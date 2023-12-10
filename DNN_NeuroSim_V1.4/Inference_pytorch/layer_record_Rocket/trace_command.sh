@@ -1,0 +1,1 @@
+./NeuroSIM/main ./NeuroSIM/NetWork_Rocket.csv 8 8 32 32 ./layer_record_Rocket/weightFC0_.csv ./layer_record_Rocket/inputFC0_.csv 
