@@ -24,7 +24,7 @@ class Rocket(nn.Module):
 
 def train(path, num_classes, training_size, num_features, **kwargs):
     # -- init ------------------------------------------------------------------
-    print(training_size)
+    # print(training_size)
     if training_size < 0:
         return 0, 0, 0, 0
 
@@ -61,7 +61,7 @@ def train(path, num_classes, training_size, num_features, **kwargs):
 
     # -- model -----------------------------------------------------------------
     
-    model = Rocket(num_classes=num_classes, num_features=num_features)
+    model = Rocket(num_classes=num_classes, num_features=num_features).to("cpu")
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr = args["lr"])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor = 0.5, min_lr = 1e-8, patience = args["patience_lr"])
@@ -145,11 +145,11 @@ def train(path, num_classes, training_size, num_features, **kwargs):
 
                     # normalise validation features
                     X_validation_transform = (X_validation_transform - f_mean) / f_std
-                    X_validation_transform = torch.FloatTensor(X_validation_transform)[:, :num_features]
+                    X_validation_transform = torch.FloatTensor(X_validation_transform)[:, :num_features].to("cpu")
 
                 # normalise training features
                 X_training_transform = (X_training_transform - f_mean) / f_std
-                X_training_transform = torch.FloatTensor(X_training_transform)[:, :num_features]
+                X_training_transform = torch.FloatTensor(X_training_transform)[:, :num_features].to("cpu")
 
                 # cache as much of the transform as possible
                 if b <= args["cache_size"]:
@@ -212,7 +212,7 @@ def predict(path,
             f_std,
             num_features,
             **kwargs):
-    # torch.cuda.set_device('cuda:0')
+    # torch.cuda.set_device("cpu")
     # torch.set_default_tensor_type('torch.cuda.FloatTensor')
     args = \
     {
@@ -243,11 +243,11 @@ def predict(path,
         Y_test, X_test = test_data[:, 0], test_data[:, 1:].astype(np.float32)
         X_test_transform = transform(X_test, parameters)
         X_test_transform = (X_test_transform - f_mean) / f_std
-        X_test_transform = torch.FloatTensor(X_test_transform)[:, :num_features]
+        X_test_transform = torch.FloatTensor(X_test_transform)[:, :num_features].to("cpu")
 
         _predictions = model(X_test_transform).argmax(1).numpy()
         predictions.append(_predictions)
-        print(_predictions, Y_test)
+        # print(_predictions, Y_test)
 
         total += len(test_data)
         correct += (_predictions == Y_test).sum()

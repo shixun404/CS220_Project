@@ -32,11 +32,9 @@ if __name__ == '__main__':
     accuracy_df = pd.DataFrame(index=dataset_list, columns=features_list)
     ucr_df = pd.read_csv(os.path.join(dataset_path, "ucr_info.csv"))
     ucr_df.set_index('Unnamed: 0', inplace=True)
-    # print(ucr_df.at['InsectSound', 'n_train'])
-    # assert 0
     for dataset in dataset_list:
-        if dataset != "InsectSound":
-            continue
+        # if dataset != "InsectSound":
+        #     continue
         for feature in features_list:
             accuracy_df.to_csv(os.path.join(output_path, 'rocket_ucr_accuracy.'), index=True)
             train_path = os.path.join(dataset_path, dataset, f"{dataset}_TRAIN.tsv")
@@ -50,19 +48,20 @@ if __name__ == '__main__':
                                                         training_size=int(ucr_df.at[dataset, 'n_train']) - 2 ** 11, num_features=feature)
             except Exception as e:
                 accuracy_df.at[dataset, feature] = None
-                print(dataset, e)
+                print(f"{dataset} failed")
                 continue
 
             if parameters == 0:
                 accuracy_df.at[dataset, feature] = None
+                print(f"{dataset} failed")
                 continue
-
+            
             torch.save(model.state_dict(), os.path.join(save_path, f'Rocket_{dataset}.pth'))
             with open(os.path.join(save_path, f'Rocket_parameters_{dataset}.pkl'), 'wb') as f:
                 pkl.dump((parameters, f_mean, f_std), f)
 
             predictions, accuracy = predict(test_path, parameters, model, f_mean, f_std, num_features=feature)
-            print(accuracy)
+            print(f"{dataset} finished, accuracy={accuracy}")
             accuracy_df.at[dataset, feature] = accuracy
     accuracy_df.to_csv(os.path.join(output_path, 'rocket_ucr_accuracy.csv'), index=True)
     print(accuracy_df.at['InsectSound', feature])

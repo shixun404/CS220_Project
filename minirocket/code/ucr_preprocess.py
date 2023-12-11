@@ -32,25 +32,21 @@ if __name__ == "__main__":
         if os.path.exists(train_tsv_path) and os.path.exists(test_tsv_path):
             try: 
                 train_data = pd.read_csv(train_tsv_path, sep='\t', index_col=False, header=None)
-                
+                test_data = pd.read_csv(test_tsv_path, sep='\t', index_col=False, header=None)
                 # Calculating the number of rows and unique elements in the first column
-                num_rows = len(train_data)
-                labels, unique = pd.factorize(train_data.iloc[:, 0])
-                # Replace the last column with the new numeric labels
-                train_data.iloc[:, 0] = labels
+                
+                combined_labels = pd.concat([train_data.iloc[:, 0], test_data.iloc[:, 0]])
+                labels, unique = pd.factorize(combined_labels)
+                train_data.iloc[:, 0] = labels[:len(train_data)]
+                test_data.iloc[:, 0] = labels[len(train_data):]
 
+                num_rows = len(train_data)
                 num_classes = len(unique)
                 summary_df.at[dataset, 'n_train'] = num_rows
                 summary_df.at[dataset, 'nc_train'] = num_classes
 
-                test_data = pd.read_csv(test_tsv_path, sep='\t', index_col=False, header=None)
-
                 # Calculating the number of rows and unique elements in the first column
                 num_rows = len(test_data)
-                labels, unique = pd.factorize(test_data.iloc[:, 0])
-
-                # Replace the last column with the new numeric labels
-                test_data.iloc[:, 0] = labels
                 num_classes = len(unique)
 
                 train_data.to_csv(train_tsv_path, sep='\t', index=False, header=False)
@@ -75,12 +71,7 @@ if __name__ == "__main__":
         test_data = pd.DataFrame(test_data)
 
         combined_labels = pd.concat([train_data.iloc[:, -1], test_data.iloc[:, -1]])
-        
-        
         labels, unique = pd.factorize(combined_labels)
-        # print(unique)
-        # assert 0
-        # Replace the last column with the new numeric labels
         train_data.iloc[:, -1] = labels[:len(train_data)]
         test_data.iloc[:, -1] = labels[len(train_data):]
 
