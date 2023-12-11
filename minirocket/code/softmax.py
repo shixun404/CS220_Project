@@ -24,6 +24,9 @@ class Rocket(nn.Module):
 
 def train(path, num_classes, training_size, num_features, **kwargs):
     # -- init ------------------------------------------------------------------
+    print(training_size)
+    if training_size < 0:
+        return 0, 0, 0, 0
 
     # default hyperparameters are reusable for any dataset
     args = \
@@ -69,10 +72,12 @@ def train(path, num_classes, training_size, num_features, **kwargs):
     # gotcha: copy() is essential to avoid competition for memory access with read_csv(...)
     validation_data = pd.read_csv(path,
                                   header = None,
-                                  sep = ",",
+                                  sep = "\t",
                                   nrows = args["validation_size"],
                                   engine = "c").values.copy()
-    Y_validation, X_validation = torch.LongTensor(validation_data[:, -1]), validation_data[:, :-1].astype(np.float32)
+
+    
+    Y_validation, X_validation = torch.LongTensor(validation_data[:, 0]), validation_data[:, 1:].astype(np.float32)
     # -- run -------------------------------------------------------------------
 
     minibatch_count = 0
@@ -90,7 +95,7 @@ def train(path, num_classes, training_size, num_features, **kwargs):
         if not fully_cached:
             file = pd.read_csv(path,
                                header = None,
-                               sep = ",",
+                               sep = "\t",
                                skiprows = args["validation_size"],
                                chunksize = args["chunk_size"],
                                engine = "c")
@@ -111,7 +116,7 @@ def train(path, num_classes, training_size, num_features, **kwargs):
 
                 # gotcha: copy() is essential to avoid competition for memory access with read_csv(...)
                 training_data = file.get_chunk().values[:_b].copy()
-                Y_training, X_training = torch.LongTensor(training_data[:, -1]), training_data[:, :-1].astype(np.float32)
+                Y_training, X_training = torch.LongTensor(training_data[:, 0]), training_data[:, 1:].astype(np.float32)
                 
                 if epoch == 0 and chunk_index == 0:
 
@@ -219,7 +224,7 @@ def predict(path,
 
     file = pd.read_csv(path,
                        header = None,
-                       sep = ",",
+                       sep = "\t",
                        chunksize = args["chunk_size"],
                        nrows = args["test_size"],
                        engine = "c")
@@ -235,14 +240,14 @@ def predict(path,
 
         # gotcha: copy() is essential to avoid competition for memory access with read_csv(...)
         test_data = chunk.values.copy()
-        Y_test, X_test = test_data[:, -1], test_data[:, :-1].astype(np.float32)
+        Y_test, X_test = test_data[:, 0], test_data[:, 1:].astype(np.float32)
         X_test_transform = transform(X_test, parameters)
         X_test_transform = (X_test_transform - f_mean) / f_std
         X_test_transform = torch.FloatTensor(X_test_transform)[:, :num_features]
 
         _predictions = model(X_test_transform).argmax(1).numpy()
         predictions.append(_predictions)
-        # print(_predictions, Y_test)
+        print(_predictions, Y_test)
 
         total += len(test_data)
         correct += (_predictions == Y_test).sum()
