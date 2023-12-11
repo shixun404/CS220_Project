@@ -12,8 +12,24 @@ import torch, torch.nn as nn, torch.optim as optim
 
 from minirocket import fit, transform
 
-def train(path, num_classes, training_size, **kwargs):
-    torch.set_default_device("cuda:0")
+
+class Rocket(nn.Module):
+    def __init__(self, num_classes=10, num_features=84 * (10_000 // 84)):
+        super(Rocket, self).__init__()
+        self.classifier = nn.Sequential(nn.Linear(num_features, num_classes, bias=False))
+        
+    def forward(self, x):
+        out = self.classifier(x)
+        return out
+
+def train(path, num_classes, training_size, num_features, **kwargs):
+    # torch.cuda.set_device('cuda:0')
+    # print(torch.cuda.current_device())
+    # torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    # assert 0
+    # print(torch.cuda.is_available() )
+    # assert 0
+    # torch.cuda.set_device
     # -- init ------------------------------------------------------------------
 
     # default hyperparameters are reusable for any dataset
@@ -31,13 +47,14 @@ def train(path, num_classes, training_size, **kwargs):
     }
     args = {**args, **kwargs}
 
-    _num_features = 84 * (args["num_features"] // 84)
+    # _num_features = 84 * (args["num_features"] // 84)
+    _num_features = num_features
     num_chunks = np.int32(np.ceil(training_size / args["chunk_size"]))
 
     def init(layer):
         if isinstance(layer, nn.Linear):
             nn.init.constant_(layer.weight.data, 0)
-            nn.init.constant_(layer.bias.data, 0)
+            # nn.init.constant_(layer.bias.data, 0)
 
     # -- cache -----------------------------------------------------------------
 
@@ -50,8 +67,11 @@ def train(path, num_classes, training_size, **kwargs):
     fully_cached = False
 
     # -- model -----------------------------------------------------------------
-
-    model = nn.Sequential(nn.Linear(_num_features, num_classes))
+    
+    model = Rocket(num_classes=num_classes, num_features=_num_features)
+    for param_tensor in model.state_dict():
+        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+    # assert 0
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr = args["lr"])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor = 0.5, min_lr = 1e-8, patience = args["patience_lr"])
@@ -135,17 +155,19 @@ def train(path, num_classes, training_size, **kwargs):
 
                     # normalise validation features
                     X_validation_transform = (X_validation_transform - f_mean) / f_std
-                    X_validation_transform = torch.FloatTensor(X_validation_transform)
+                    X_validation_transform = torch.FloatTensor(X_validation_transform)[:, :8192]
 
                 # normalise training features
                 X_training_transform = (X_training_transform - f_mean) / f_std
-                X_training_transform = torch.FloatTensor(X_training_transform)
+                X_training_transform = torch.FloatTensor(X_training_transform)[:, :8192]
 
                 # cache as much of the transform as possible
                 if b <= args["cache_size"]:
                     # print(X_training_transform.shape)
                     # print(cache_X[a:b].shape, X_training_transform[:b-a].shape)
                     s = min(b - a, X_training_transform.shape[0])
+                    # print(X_training_transform.shape, cache_X.shape)
+                    # assert 0
                     cache_X[a:a + s] = X_training_transform[:s]
                     cache_Y[a:a + s] = Y_training[:s]
                     cache_count = a + s
@@ -171,7 +193,7 @@ def train(path, num_classes, training_size, **kwargs):
                 training_loss = loss_function(_Y_training, Y_training[minibatch])
                 training_loss.backward()
                 optimizer.step()
-                print(training_loss)
+                # print(training_loss)
 
                 minibatch_count += 1
 
@@ -201,7 +223,8 @@ def predict(path,
             f_mean,
             f_std,
             **kwargs):
-    torch.set_default_device("cuda:0")
+    # torch.cuda.set_device('cuda:0')
+    # torch.set_default_tensor_type('torch.cuda.FloatTensor')
     args = \
     {
         "score"      : True,
@@ -235,11 +258,11 @@ def predict(path,
         # assert 0
         X_test_transform = transform(X_test, parameters)
         X_test_transform = (X_test_transform - f_mean) / f_std
-        X_test_transform = torch.FloatTensor(X_test_transform)
+        X_test_transform = torch.FloatTensor(X_test_transform)[:, :8192]
 
         _predictions = model(X_test_transform).argmax(1).numpy()
         predictions.append(_predictions)
-        print(_predictions, Y_test)
+        # print(_predictions, Y_test)
 
         total += len(test_data)
         correct += (_predictions == Y_test).sum()
