@@ -87,7 +87,7 @@ elif args.dataset in ucr_dataset_list:
         "chunk_size" : 2 ** 12,
         "test_size"  : None
     }
-    train_loader, test_loader = dataset.get_ucr(ucr_args, test_path=f'~/ucr_archive/{args.dataset}/{args.dataset}_TEST.csv')
+    train_loader, test_loader = dataset.get_ucr(ucr_args, test_path=f'/global/cfs/cdirs/m4271/swu264/ucr_archive/{args.dataset}/{args.dataset}_TEST.csv')
 else:
     raise ValueError("Unknown dataset type")
     
