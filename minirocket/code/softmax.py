@@ -14,7 +14,7 @@ from minirocket import fit, transform
 
 
 class Rocket(nn.Module):
-    def __init__(self, num_classes=10, num_features=84 * (10_000 // 84)):
+    def __init__(self, num_classes=10, num_features=8192):
         super(Rocket, self).__init__()
         self.classifier = nn.Sequential(nn.Linear(num_features, num_classes, bias=False))
         
@@ -23,13 +23,6 @@ class Rocket(nn.Module):
         return out
 
 def train(path, num_classes, training_size, num_features, **kwargs):
-    # torch.cuda.set_device('cuda:0')
-    # print(torch.cuda.current_device())
-    # torch.set_default_tensor_type('torch.cuda.FloatTensor')
-    # assert 0
-    # print(torch.cuda.is_available() )
-    # assert 0
-    # torch.cuda.set_device
     # -- init ------------------------------------------------------------------
 
     # default hyperparameters are reusable for any dataset
@@ -46,9 +39,6 @@ def train(path, num_classes, training_size, num_features, **kwargs):
         "cache_size"      : training_size  # set to 0 to prevent caching
     }
     args = {**args, **kwargs}
-
-    # _num_features = 84 * (args["num_features"] // 84)
-    _num_features = num_features
     num_chunks = np.int32(np.ceil(training_size / args["chunk_size"]))
 
     def init(layer):
@@ -61,17 +51,14 @@ def train(path, num_classes, training_size, num_features, **kwargs):
     # cache as much as possible to avoid unecessarily repeating the transform
     # consider caching to disk if appropriate, along the lines of numpy.memmap
 
-    cache_X = torch.zeros((args["cache_size"], _num_features))
+    cache_X = torch.zeros((args["cache_size"], num_features))
     cache_Y = torch.zeros(args["cache_size"], dtype = torch.long)
     cache_count = 0
     fully_cached = False
 
     # -- model -----------------------------------------------------------------
     
-    model = Rocket(num_classes=num_classes, num_features=_num_features)
-    for param_tensor in model.state_dict():
-        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-    # assert 0
+    model = Rocket(num_classes=num_classes, num_features=num_features)
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr = args["lr"])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor = 0.5, min_lr = 1e-8, patience = args["patience_lr"])
@@ -86,8 +73,6 @@ def train(path, num_classes, training_size, num_features, **kwargs):
                                   nrows = args["validation_size"],
                                   engine = "c").values.copy()
     Y_validation, X_validation = torch.LongTensor(validation_data[:, -1]), validation_data[:, :-1].astype(np.float32)
-    # print(Y_validation[0], X_validation[0])
-    # assert 0
     # -- run -------------------------------------------------------------------
 
     minibatch_count = 0
@@ -155,19 +140,17 @@ def train(path, num_classes, training_size, num_features, **kwargs):
 
                     # normalise validation features
                     X_validation_transform = (X_validation_transform - f_mean) / f_std
-                    X_validation_transform = torch.FloatTensor(X_validation_transform)[:, :8192]
+                    X_validation_transform = torch.FloatTensor(X_validation_transform)[:, :num_features]
 
                 # normalise training features
                 X_training_transform = (X_training_transform - f_mean) / f_std
-                X_training_transform = torch.FloatTensor(X_training_transform)[:, :8192]
+                X_training_transform = torch.FloatTensor(X_training_transform)[:, :num_features]
 
                 # cache as much of the transform as possible
                 if b <= args["cache_size"]:
                     # print(X_training_transform.shape)
                     # print(cache_X[a:b].shape, X_training_transform[:b-a].shape)
                     s = min(b - a, X_training_transform.shape[0])
-                    # print(X_training_transform.shape, cache_X.shape)
-                    # assert 0
                     cache_X[a:a + s] = X_training_transform[:s]
                     cache_Y[a:a + s] = Y_training[:s]
                     cache_count = a + s
@@ -222,6 +205,7 @@ def predict(path,
             model,
             f_mean,
             f_std,
+            num_features,
             **kwargs):
     # torch.cuda.set_device('cuda:0')
     # torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -252,13 +236,9 @@ def predict(path,
         # gotcha: copy() is essential to avoid competition for memory access with read_csv(...)
         test_data = chunk.values.copy()
         Y_test, X_test = test_data[:, -1], test_data[:, :-1].astype(np.float32)
-        # print(test_data[0])
-        # assert 0
-        # print(test_data[:, :-1].shape)
-        # assert 0
         X_test_transform = transform(X_test, parameters)
         X_test_transform = (X_test_transform - f_mean) / f_std
-        X_test_transform = torch.FloatTensor(X_test_transform)[:, :8192]
+        X_test_transform = torch.FloatTensor(X_test_transform)[:, :num_features]
 
         _predictions = model(X_test_transform).argmax(1).numpy()
         predictions.append(_predictions)

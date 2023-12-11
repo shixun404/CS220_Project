@@ -16,7 +16,7 @@ if __name__ == '__main__':
                          default="/global/homes/s/swu264/ucr_archive/")
     parser.add_argument('--output', '-o', type=str, 
                         default="/global/homes/s/swu264/rocket/DNN_NeuroSim_V1.4/Inference_pytorch/log/")
-    parser.add_argument('--features', '-f', type=int, nargs="*", required=True)
+    parser.add_argument('--features', '-f', type=int, nargs="*", default=[8192])
     args = parser.parse_args()
     
     dataset_path = args.input
@@ -33,7 +33,8 @@ if __name__ == '__main__':
             test_path = os.path.join(dataset_path, dataset, f"{dataset}_TEST.csv")
             save_path = os.path.join(output_path, dataset, f"{feature}")
 
-
+            if not os.path.exists(save_path):
+                os.makedirs(save_path, exist_ok=True)
 
             parameters, model, f_mean, f_std  = train(train_path, num_classes=10,
                                                        training_size=22952, num_features=feature)
@@ -43,7 +44,8 @@ if __name__ == '__main__':
             with open(os.path.join(save_path, f'Rocket_parameters_{dataset}.pkl'), 'wb') as f:
                 pkl.dump((parameters, f_mean, f_std), f)
 
-            predictions, accuracy = predict(test_path, parameters, model, f_mean, f_std)
+            predictions, accuracy = predict(test_path, parameters, model, f_mean, f_std, num_features=feature)
 
             accuracy_df.at[dataset, feature] = accuracy
     accuracy_df.to_csv(os.path.join(output_path, 'rocket_ucr_accuracy.csv'), index=True)
+    print(accuracy_df)

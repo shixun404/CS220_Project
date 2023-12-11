@@ -8,10 +8,8 @@ target = {'Aedes_female':0, 'Aedes_male': 1, 'Fruit_flies': 2,
          'Stigma_female': 6, 'Stigma_male': 7, 'Tarsalis_female': 8, 'Tarsalis_male':9}
 
 train_path = "~/ucr_archive/InsectSound/InsectSound_TRAIN.arff"
-# train_path = "./test.arff"
 test_path = "~/ucr_archive/InsectSound/InsectSound_TEST.arff"
 csv_train_path = "~/ucr_archive/InsectSound/InsectSound_TRAIN.csv"
-# csv_train_path = "./test.csv"
 csv_test_path = "~/ucr_archive/InsectSound/InsectSound_TEST.csv"
 stat = [0 for i in range(10)]
 
