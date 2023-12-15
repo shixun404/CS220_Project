@@ -114,7 +114,7 @@ def get_ucr(ucr_args, test_path=None):
     if test_path:
         test_file = pd.read_csv(test_path,
                         header = None,
-                        sep = ",",
+                        sep = "\t",
                         chunksize = ucr_args["chunk_size"],
                         nrows = ucr_args["test_size"],
                         engine = "c")

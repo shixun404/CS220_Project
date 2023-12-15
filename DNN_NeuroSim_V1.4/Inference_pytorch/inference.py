@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from utils import *
 from utee import misc
 import numpy as np
 import torch
@@ -20,6 +21,7 @@ from subprocess import call
 parser = argparse.ArgumentParser(description='PyTorch CIFAR-X Example')
 parser.add_argument('--dataset', default='cifar10', help='cifar10|cifar100|imagenet')
 parser.add_argument('--model', default='VGG8', help='VGG8|DenseNet40|ResNet18')
+parser.add_argument('--dim', default=8192, help='8192|4096|2048|1024')
 parser.add_argument('--mode', default='WAGE', help='WAGE|FP')
 parser.add_argument('--batch_size', type=int, default=200, help='input batch size for training (default: 64)')
 parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train (default: 10)')
@@ -66,6 +68,8 @@ for k, v in args.__dict__.items():
 	logger('{}: {}'.format(k, v))
 logger("========================================")
 
+
+rocket_name_list = ['Rocket']
 # seed
 args.cuda = torch.cuda.is_available()
 torch.manual_seed(args.seed)
@@ -81,13 +85,14 @@ elif args.dataset == 'cifar100':
 elif args.dataset == 'imagenet':
     train_loader, test_loader = dataset.get_imagenet(batch_size=args.batch_size, num_workers=1)
 elif args.dataset in ucr_dataset_list:
+    
     ucr_args = \
     {
         "score"      : True,
         "chunk_size" : 2 ** 12,
         "test_size"  : None
     }
-    train_loader, test_loader = dataset.get_ucr(ucr_args, test_path=f'/global/cfs/cdirs/m4271/swu264/ucr_archive/{args.dataset}/{args.dataset}_TEST.csv')
+    train_loader, test_loader = dataset.get_ucr(ucr_args, test_path=f'/global/cfs/cdirs/m4271/swu264/ucr_archive/{args.dataset}/{args.dataset}_TEST.tsv')
 else:
     raise ValueError("Unknown dataset type")
     
@@ -106,11 +111,21 @@ elif args.model == 'ResNet18':
     # model_path = './log/xxx.pth'
     # modelCF = ResNet.resnet18(args = args, logger=logger, pretrained = model_path)
     modelCF = ResNet.resnet18(args = args, logger=logger, pretrained = True)
-elif args.model == 'Rocket':
+elif args.model in rocket_name_list:
     from models import Rocket
-    model_path = f'./log/Rocket_{args.dataset}.pth'     # WAGE mode pretrained model
-    parameters_path = f'./log/Rocket_parameters_{args.dataset}.pkl'
-    modelCF = Rocket.RocketNet(args = args, logger=logger, pretrained=model_path, 
+    ucr_info_path = "/global/homes/s/swu264/rocket/ucr_info.csv"
+    ucr_df = pd.read_csv(ucr_info_path)
+    ucr_df.set_index('Unnamed: 0', inplace=True)
+    model_path = f'./log/{args.dataset}/{args.dim}/Rocket_{args.dataset}.pth'     # WAGE mode pretrained model
+    dim = int(args.dim)
+    parameters_path = f'./log/{args.dataset}/{dim}/Rocket_parameters_{args.dataset}.pkl'
+    
+    num_classes = int(ucr_df.at[args.dataset, 'nc_test'])
+    with open("NeuroSIM/NetWork_Rocket.csv", 'w') as f:
+        f.write(f"1,1,{dim},1,1,{num_classes},0,1\n")
+    compile_Neurosim()
+    modelCF = Rocket.RocketNet(args=args, logger=logger, num_classes=num_classes,
+                               num_features=dim, pretrained=model_path, 
                                 parameters=parameters_path)
 else:
     raise ValueError("Unknown model type")
@@ -141,7 +156,7 @@ if args.parallelRead < args.subArray and args.cellBit > 1:
     exit()
 
 # for data, target in test_loader:
-if args.model != 'Rocket':
+if args.model not in rocket_name_list:
     for i, (data, target) in enumerate(test_loader):
         if i==0:
             hook_handle_list = hook.hardware_evaluation(modelCF,args.wl_weight,args.wl_activate,args.subArray,args.parallelRead,args.model,args.mode)
@@ -168,10 +183,10 @@ else:
 
         # gotcha: copy() is essential to avoid competition for memory access with read_csv(...)
         test_data = chunk.values.copy()
-        target, data = test_data[:, -1], test_data[:, :-1].astype(np.float32)
+        target, data = test_data[:, 0], test_data[:, 1:].astype(np.float32)
         data = transform(data, modelCF.conv_parameters)
         data = (data - modelCF.f_mean) / modelCF.f_std
-        data = torch.FloatTensor(data)[:, :8192]
+        data = torch.FloatTensor(data)[:, :dim]
         target = torch.LongTensor(target)
         
         rocket_test_file_nrows += target.shape[0]
@@ -212,7 +227,7 @@ if args.inference:
     print("variation: ")
     print(args.vari)
 
-if args.model != 'Rocket':
+if args.model not in rocket_name_list:
     logger('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         test_loss, correct, len(test_loader.dataset), acc))
 else:

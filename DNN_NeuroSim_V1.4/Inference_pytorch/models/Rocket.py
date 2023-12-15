@@ -9,54 +9,15 @@ import pickle as pkl
 name=0
 
 class Rocket(nn.Module):
-    def __init__(self, args, logger, depth, growth_rate=12, reduction=0.5, num_classes=10, num_features=8192):
+    def __init__(self, args, logger, num_classes=10, num_features=8192):
         super(Rocket, self).__init__()
-        nBlocks = (depth-4) // 3 // 2
-        
-        num_planes = 2*growth_rate
-        # self.conv1 = make_layers([('C', 3, num_planes, 3, 'same', 1)], args, logger)
-
-        # self.dense1 = self._make_dense(args, logger, num_planes, nBlocks, growth_rate)
-        num_planes += nBlocks*growth_rate
-        out_planes = int(math.floor(num_planes*reduction))
-        # self.trans1 = Transition(args, logger, num_planes, out_planes)
-        num_planes = out_planes
-
-        # self.dense2 = self._make_dense(args, logger, num_planes, nBlocks, growth_rate)
-        num_planes += nBlocks*growth_rate
-        out_planes = int(math.floor(num_planes*reduction))
-        # self.trans2 = Transition(args, logger, num_planes, out_planes)
-        num_planes = out_planes
-
-        # self.dense3 = self._make_dense(args, logger, num_planes, nBlocks, growth_rate)
-        num_planes += nBlocks*growth_rate
-
-        # self.avgpool = nn.AvgPool2d(8)
         self.classifier = make_layers([('L', num_features, num_classes)], args, logger)
 
         self.conv_parameters = None
         self.f_mean = None
         self.f_std = None
-    
-        # for m in self.modules():
-        #     if isinstance(m, QConv2d) or isinstance(m, nn.Conv2d):
-        #         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-        #         m.weight.data.normal_(0, math.sqrt(2. / n))
-                
-    # def _make_dense(self, args, logger, in_planes, nblock, growth_rate):
-    #     layers = []
-    #     for i in range(nblock):
-    #         layers.append(Bottleneck(args, logger, in_planes, growth_rate))
-    #         in_planes += growth_rate
-    #     return nn.Sequential(*layers)
 
     def forward(self, x):
-        # out = self.conv1(x)
-        # out = self.trans1(self.dense1(out))
-        # out = self.trans2(self.dense2(out))
-        # out = self.dense3(out)
-        # out = self.avgpool(out)
-        # out = out.view(out.size(0), -1)
         out = self.classifier(x)
         return out
 
@@ -131,11 +92,8 @@ def make_layers(cfg, args, logger):
     return nn.Sequential(*layers)
     
     
-def RocketNet(args, logger, pretrained=None, parameters=None):
-    model = Rocket(args, logger, depth=40, growth_rate=12, reduction=0.5, num_classes=10, num_features=8192)
-    # for param_tensor in model.state_dict():
-    #     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-    # assert 0
+def RocketNet(args, logger, num_classes, num_features, pretrained=None, parameters=None):
+    model = Rocket(args, logger, num_classes=num_classes, num_features=num_features)
     if pretrained is not None:
         model.load_state_dict(torch.load(pretrained, map_location='cuda'))
     if parameters is not None:
