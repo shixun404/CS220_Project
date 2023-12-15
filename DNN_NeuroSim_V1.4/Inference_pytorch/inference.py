@@ -18,6 +18,8 @@ from utee import hook
 #from IPython import embed
 from datetime import datetime
 from subprocess import call
+from subprocess import run
+import subprocess
 parser = argparse.ArgumentParser(description='PyTorch CIFAR-X Example')
 parser.add_argument('--dataset', default='cifar10', help='cifar10|cifar100|imagenet')
 parser.add_argument('--model', default='VGG8', help='VGG8|DenseNet40|ResNet18')
@@ -237,4 +239,8 @@ else:
 
 
 
-call(["/bin/bash", './layer_record_'+str(args.model)+'/trace_command.sh'])
+# call(["/bin/bash", './layer_record_'+str(args.model)+'/trace_command.sh'])
+command = ["/bin/bash", './layer_record_'+str(args.model)+'/trace_command.sh']
+result = run(command, stdout=subprocess.PIPE, text=True)
+output_post_process(result.stdout)
+
