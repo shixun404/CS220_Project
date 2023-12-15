@@ -1,0 +1,5 @@
+dataset, dim, speedUpDegree, technode, cellBit, Accuracy, ChipArea_um^2, Energy_Efficiency_TOPS/W, Throughput_TOPS, Throughput_FPS, Compute_Efficiency_TOPS/mm^2
+InsectSound, 2048, 1, 1, 1, 65.58799743652344, 320624.0, 7.54719, 0.161058, 3932090.0, 0.502328
+InsectSound, 2048, 1, 10, 1, 65.58799743652344, 1734740.0, 2.38726, 0.0974291, 2378640.0, 0.0561637
+InsectSound, 2048, 1, 22, 1, 65.58799743652344, 5320790.0, 1.03573, 0.0547221, 1335990.0, 0.0102846
+InsectSound, 2048, 1, 32, 1, 65.58799743652344, 11764200.0, 0.660792, 0.0361764, 883213.0, 0.00307513
