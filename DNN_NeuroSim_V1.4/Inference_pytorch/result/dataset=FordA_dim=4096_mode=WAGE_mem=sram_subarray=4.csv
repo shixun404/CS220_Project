@@ -1,0 +1,5 @@
+dataset, dim, speedUpDegree, technode, cellBit, Accuracy, ChipArea_um^2, Energy_Efficiency_TOPS/W, Throughput_TOPS, Throughput_FPS, Compute_Efficiency_TOPS/mm^2
+FordA, 4096, 1, 1, 1, 90.0, 344663.0, 2.98468, 0.0383256, 2339210.0, 0.111198
+FordA, 4096, 1, 10, 1, 90.0, 1932020.0, 0.904168, 0.0206101, 1257940.0, 0.0106676
+FordA, 4096, 1, 22, 1, 90.0, 5704620.0, 0.387382, 0.00993382, 606312.0, 0.00174136
+FordA, 4096, 1, 32, 1, 90.0, 12545900.0, 0.242004, 0.00687734, 419760.0, 0.000548175

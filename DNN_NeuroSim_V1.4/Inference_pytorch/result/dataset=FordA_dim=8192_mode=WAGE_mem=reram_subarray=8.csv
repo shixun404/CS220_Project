@@ -1,0 +1,3 @@
+dataset, dim, speedUpDegree, technode, cellBit, Accuracy, ChipArea_um^2, Energy_Efficiency_TOPS/W, Throughput_TOPS, Throughput_FPS, Compute_Efficiency_TOPS/mm^2
+FordA, 8192, 1, 22, 1, 89.54545593261719, 69276200.0, 0.725963, 0.0287224, 876537.0, 0.000414607
+FordA, 8192, 1, 32, 1, 89.54545593261719, 153487000.0, 0.438701, 0.0190181, 580387.0, 0.000123907
