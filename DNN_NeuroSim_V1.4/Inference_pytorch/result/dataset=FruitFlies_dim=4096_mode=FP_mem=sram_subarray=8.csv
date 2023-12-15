@@ -1,0 +1,5 @@
+dataset, dim, speedUpDegree, technode, cellBit, Accuracy, ChipArea_um^2, Energy_Efficiency_TOPS/W, Throughput_TOPS, Throughput_FPS, Compute_Efficiency_TOPS/mm^2
+FruitFlies, 4096, 1, 1, 1, 93.8930435180664, 203669.0, 6.83055, 0.0638531, 2598190.0, 0.313514
+FruitFlies, 4096, 1, 10, 1, 93.8930435180664, 1098140.0, 2.163, 0.0385218, 1567460.0, 0.0350791
+FruitFlies, 4096, 1, 22, 1, 93.8930435180664, 3323730.0, 0.958242, 0.0216951, 882775.0, 0.00652733
+FruitFlies, 4096, 1, 32, 1, 93.8930435180664, 7336860.0, 0.602603, 0.0143425, 583597.0, 0.00195485
